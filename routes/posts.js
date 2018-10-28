@@ -2,26 +2,48 @@ const express = require('express')
 const router = express.Router()
 
 const checkLogin = require('../middlewares/check').checkLogin
-
+const PostModel = require('../models/posts')
 // GET /posts 所有用户或者特定用户的文章页
 //   eg: GET /posts?author=xxx
 router.get('/', function (req, res, next) {
-  res.render('posts')
+  const author = req.query.author
+  console.log('/posts author', author)
+  PostModel.getPosts(author)
+    .then(function(posts) {
+      res.render('posts', {
+        posts: posts
+      })
+    })
+    .catch(next)
 })
 
 // POST /posts/create 发表一篇文章
-router.post('/create', checkLogin, function (req, res, next) {
-  res.send('发表文章')
-})
+router.post('/create', checkLogin, PostModel.create)
 
 // GET /posts/create 发表文章页
 router.get('/create', checkLogin, function (req, res, next) {
-  res.send('发表文章页')
+  res.render('create')
 })
 
 // GET /posts/:postId 单独一篇的文章页
 router.get('/:postId', function (req, res, next) {
-  res.send('文章详情页')
+  const postId = req.params.postId
+  console.log('详细文章页 postId', postId)
+  Promise.all([
+    PostModel.getPostById({_id: postId}),
+    PostModel.incPv(postId)
+  ])
+    .then(function(result) {
+      const post = result[0]
+      console.log('详细文章页post', post)
+      if (!post) {
+        throw new Error('该文章不存在')
+      }
+      res.render('post', {
+        post: post
+      })
+    })
+    .catch(next)
 })
 
 // GET /posts/:postId/edit 更新文章页

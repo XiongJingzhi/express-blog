@@ -13,7 +13,7 @@ module.exports = {
   },
   // 获取用户信息
   getUserByName: function(name) {
-    return User.findOne({username: name})
+    return User.findOne({username: name}).exec()
   },
   // 验证注册
   validateRegister: function(req, res, next) {
