@@ -1,9 +1,10 @@
 <div class="post-content">
   <div class="ui grid">
+
     <div class="four wide column">
       <a class="avatar avatar-link"
          href="/posts?author=<%= post.author._id %>"
-         data-title="<%= post.author.name %> | <%= ({m: '男', f: '女', x: '保密'})[post.author.gender] %>"
+         data-title="<%= post.author.username %> | <%= ({m: '男', f: '女', x: '保密'})[post.author.gender] %>"
          data-content="<%= post.author.bio %>">
         <img class="avatar" src="/<%= post.author.avatar %>">
       </a>
@@ -34,5 +35,6 @@
         </div>
       </div>
     </div>
+
   </div>
 </div>
