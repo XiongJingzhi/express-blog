@@ -9,5 +9,8 @@ module.exports = {
   // 获取用户信息，返回promise
   getUserByName: function(name) {
     return User.findOne({username: name}).exec()
+  },
+  deleteMany: function(query) {
+    return User.deleteMany(query).exec()
   }
 }

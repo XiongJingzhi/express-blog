@@ -29,7 +29,7 @@ router.post('/', checkNotLogin, function(req, res, next) {
     if (['m', 'f', 'x'].indexOf(gender) === -1) {
       throw new Error('性别只能是 m、f 或 x')
     }
-    if (!(bio.length >= 1 && bio.length <= 1000)) {
+    if (!(bio.length >= 1 && bio.length <= 60)) {
       throw new Error('个人简介请限制在 1-30 个字符')
     }
     if (!req.files.avatar.name) {
@@ -45,6 +45,7 @@ router.post('/', checkNotLogin, function(req, res, next) {
     // 注册失败，删除上传的头像
     fs.unlinkSync(req.files.avatar.path)
     req.flash('error', err.message)
+    return res.redirect('/signup')
   }
   // format 请求
   let user = {
@@ -68,12 +69,12 @@ router.post('/', checkNotLogin, function(req, res, next) {
           })
           .catch(function (e) {
             req.flash('error', '写入失败，注册失败')
-            res.redirect('/signup')
+            return res.redirect('/signup')
           })
       } else {
         fs.unlinkSync(req.files.avatar.path)
         req.flash('error', '用户名已存在')
-        res.redirect('/signup')
+        return res.redirect('/signup')
       }
     })
     .catch(next)

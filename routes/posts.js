@@ -9,18 +9,19 @@ const CommentModel = require('../models/comment')
 //   eg: GET /posts?author=xxx
 router.get('/', function (req, res, next) {
   const author = req.query.author
-  console.log('/posts author', author)
   PostModel.getPosts(author)
     .then(function(posts) {
-      posts.map(post => {
-        post.content = marked(post.content)
-      })
+      // posts.map(post => {
+
+      // })
+      // 这里可以优化，此时 posts 数据结构没有 comments
+      // 其实可以直接把 posts 内嵌到 posts 里
       Promise.all(posts.map(post => {
+        post.content = marked(post.content)
         return (
           CommentModel.getCommentsCount(post._id)
             .then(function(res) {
               post.commentsCount = res
-              console.log('/posts count', res)
             })
         )
       }))
@@ -47,8 +48,8 @@ router.post('/create', checkLogin, function(req, res, next) {
     if (!content.length) {
       throw new Error('请填写内容')
     }
-  } catch (e) {
-    req.flash('error', e.message)
+  } catch (err) {
+    req.flash('error', err.message)
     return res.redirect('back')
   }
   // format 文章
@@ -59,7 +60,6 @@ router.post('/create', checkLogin, function(req, res, next) {
   }
   PostModel.create(post)
     .then(function (result) {
-      console.log('create blog', result)
       // 此 post 是插入 mongodb 后的值，包含 _id
       req.flash('success', '发表成功')
       // 发表成功后跳转到该文章页
@@ -76,7 +76,6 @@ router.get('/create', checkLogin, function (req, res, next) {
 // GET /posts/:postId 单独一篇的文章页
 router.get('/:postId', function (req, res, next) {
   const postId = req.params.postId
-  console.log('详细文章页 postId', postId)
   Promise.all([
     PostModel.getPostById(postId),
     CommentModel.getCommentsByPostId(postId),
@@ -87,9 +86,7 @@ router.get('/:postId', function (req, res, next) {
       const post = result[0]
       post.content = marked(post.content)
       post.commentsCount = result[2]
-      console.log('post content', result)
       const comments = result[1]
-      console.log('post comment', comments)
       if (!post) {
         throw new Error('该文章不存在')
       }
@@ -104,10 +101,18 @@ router.get('/:postId', function (req, res, next) {
 // GET /posts/:postId/edit 更新文章页
 router.get('/:postId/edit', checkLogin, function (req, res, next) {
   const postId = req.params.postId
+  const author = req.session.user._id
+
   PostModel.getPostById(postId)
-    .then(function(result) {
+    .then(function (post) {
+      if (!post) {
+        throw new Error('文章不存在')
+      }
+      if (post.author._id.toString() !== author.toString()) {
+        throw new Error('没有权限')
+      }
       res.render('edit', {
-        post: result
+        post: post
       })
     })
     .catch(next)

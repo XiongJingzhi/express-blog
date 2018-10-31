@@ -30,14 +30,14 @@ module.exports = {
   incPv: function(postId) {
     return (
       Post
-        .update({_id: postId}, {$inc: {pv: 1}})
+        .updateOne({_id: postId}, {$inc: {pv: 1}})
         .exec()
     )
   },
   updatePostById: function(postId, update) {
     return (
       Post
-        .findByIdAndUpdate({_id: postId}, update)
+        .updateOne({_id: postId}, update)
         .exec()
     )
   },

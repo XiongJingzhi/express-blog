@@ -11,4 +11,3 @@ router.get('/:name', function(req, res) {
 
 export { router as userRouter }
 
-

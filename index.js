@@ -1,10 +1,12 @@
 const path = require('path')
+const fs = require('fs')
+const winston =require('winston')
 const express = require('express')
+const expressWinston =require('express-winston')
 const session = require('express-session')
 const MongoStore = require('connect-mongo')(session)
 const flash = require('connect-flash')
 const formidable = require('express-formidable')
-const fs = require('fs')
 
 const config = require('./config/default')
 const routes = require('./routes')
@@ -60,10 +62,53 @@ app.use(function(req, res, next) {
   next()
 })
 
+// 处理请求日志
+app.use(expressWinston.logger({
+  transports: [
+    // new winston.transports.Console(),
+    new winston.transports.File({
+      filename: 'logs/success.log'
+    })
+  ],
+  format: winston.format.combine(
+    winston.format.colorize(),
+    winston.format.json()
+  ),
+  meta: true,
+  msg: 'HTTP {{req.method}} {{req.url}}',
+  expressFormat: true,
+  colorize: false,
+  ignoreRoute: function (req, res) { return false }
+}))
+
 // 路由
 routes(app)
 
-// 监听端口，启动程序
-app.listen(config.port, function() {
-  console.log(`listening on port ${config.port}`)
-})
+// 错误请求的日志
+app.use(expressWinston.errorLogger({
+  transports: [
+    new winston.transports.Console(),
+    new winston.transports.File({
+      filename: 'logs/error.log'
+    })
+  ],
+  format: winston.format.combine(
+    winston.format.colorize(),
+    winston.format.json()
+  )
+}))
+
+// // 监听端口，启动程序
+// app.listen(config.port, function() {
+//   console.log(`listening on port ${config.port}`)
+// })
+
+if (require.main !== module) {
+  // 被 require测试入口,则导出 app
+  module.exports = app
+} else {
+  // 监听端口，启动程序
+  app.listen(config.port, function () {
+    console.log(`${pkg.name} listening on port ${config.port}`)
+  })
+}

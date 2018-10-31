@@ -19,6 +19,11 @@
     "no-unused-vars": 0
   },
   "globals": {
-    "__dirname": true
+    "__dirname": true,
+    "describe": true,
+    "beforeEach": true,
+    "afterEach": true,
+    "after": true,
+    "it": true
   }
 }
